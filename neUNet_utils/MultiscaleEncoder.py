@@ -8,6 +8,7 @@ from torch.nn.modules.dropout import _DropoutNd
 from dynamic_network_architectures.building_blocks.simple_conv_blocks import StackedConvBlocks, ConvDropoutNormReLU
 from dynamic_network_architectures.building_blocks.helper import maybe_convert_scalar_to_list, get_matching_pool_op
 
+
 class MultiscaleEncoder(nn.Module):
     def __init__(self,
                  input_channels: int,
@@ -39,26 +40,34 @@ class MultiscaleEncoder(nn.Module):
             n_conv_per_stage = [n_conv_per_stage] * n_stages
         if isinstance(strides, int):
             strides = [strides] * n_stages
-        assert len(kernel_sizes) == n_stages, "kernel_sizes must have as many entries as we have resolution stages (n_stages)"
-        assert len(n_conv_per_stage) == n_stages, "n_conv_per_stage must have as many entries as we have resolution stages (n_stages)"
-        assert len(features_per_stage) == n_stages, "features_per_stage must have as many entries as we have resolution stages (n_stages)"
+        assert len(
+            kernel_sizes) == n_stages, "kernel_sizes must have as many entries as we have resolution stages (n_stages)"
+        assert len(
+            n_conv_per_stage) == n_stages, "n_conv_per_stage must have as many entries as we have resolution stages (n_stages)"
+        assert len(
+            features_per_stage) == n_stages, "features_per_stage must have as many entries as we have resolution stages (n_stages)"
         assert len(strides) == n_stages, "strides must have as many entries as we have resolution stages (n_stages). " \
-                                             "Important: first entry is recommended to be 1, else we run strided conv drectly on the input"
+                                         "Important: first entry is recommended to be 1, else we run strided conv drectly on the input"
         stages = []
         multiscale_input = []
         for s in range(n_stages):
             stage_modules = []
-            if s in range(1,n_stages-1):
+            if s in range(1, n_stages - 1):
                 multiscale_input.append(ConvDropoutNormReLU(
                     conv_op, np.prod(wavalet_scales[s-1]), input_channels, 3, 1, conv_bias, norm_op, norm_op_kwargs, dropout_op, dropout_op_kwargs,
                     nonlin, nonlin_kwargs, nonlin_first
                    ))
+                # multiscale_input.append(ConvDropoutNormReLU(
+                #     conv_op, 1, input_channels, 3, 1, conv_bias, norm_op, norm_op_kwargs, dropout_op, dropout_op_kwargs,
+                #     nonlin, nonlin_kwargs, nonlin_first
+                # ))
                 input_channels = 2 * input_channels
 
             if pool == 'max' or pool == 'avg':
                 if (isinstance(strides[s], int) and strides[s] != 1) or \
                         isinstance(strides[s], (tuple, list)) and any([i != 1 for i in strides[s]]):
-                    stage_modules.append(get_matching_pool_op(conv_op, pool_type=pool)(kernel_size=strides[s], stride=strides[s]))
+                    stage_modules.append(
+                        get_matching_pool_op(conv_op, pool_type=pool)(kernel_size=strides[s], stride=strides[s]))
                 conv_stride = 1
             elif pool == 'conv':
                 conv_stride = strides[s]
@@ -94,8 +103,8 @@ class MultiscaleEncoder(nn.Module):
         output = self.stages[0](x[0])
         ret.append(output)
 
-        for i in range(1,self.n_stages-1):
-            input = torch.cat((output,self.multiscale_input[i-1](x[i])),dim=1)
+        for i in range(1, self.n_stages - 1):
+            input = torch.cat((output, self.multiscale_input[i - 1](x[i])), dim=1)
             output = self.stages[i](input)
             ret.append(output)
 
@@ -106,8 +115,6 @@ class MultiscaleEncoder(nn.Module):
         else:
             raise ret[-1]
 
-
-
     def compute_conv_feature_map_size(self, input_size):
         output = np.int64(0)
         shapes = input_size
@@ -115,7 +122,6 @@ class MultiscaleEncoder(nn.Module):
         for s in range(len(self.multiscale_input)):
             output += self.multiscale_inputs[s].compute_conv_feature_map_size(shapes)
             shapes = input_size = [i // j for i, j in zip(shapes, self.strides[s])]
-
 
         for s in range(len(self.stages)):
             if isinstance(self.stages[s], nn.Sequential):

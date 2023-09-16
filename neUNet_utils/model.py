@@ -12,7 +12,7 @@ from typing import Union, List, Tuple, Type
 from torch.nn.modules.conv import _ConvNd
 from torch.nn.modules.dropout import _DropoutNd
 import numpy as np
-from SRUNet.MultiscaleEncoder import MultiscaleEncoder
+from neUNet_utils.MultiscaleEncoder import MultiscaleEncoder
 
 
 class PixelShuffle3d(nn.Module):
@@ -53,10 +53,10 @@ class ConvWithPixelShuffle(nn.Module):
         super().__init__()
         self.dims = convert_conv_op_to_dim(conv_op)
         n = np.prod(scales)
-        self.conv1 = conv_op(in_channels, n/2 * in_channels, 5, 1, 2)
+        self.conv1 = conv_op(in_channels, 2 * in_channels, 5, 1, 2)
         self.tanh = nn.Tanh()
         if self.dims == 3:
-            self.conv2 = conv_op(n/2 * in_channels, out_channels * n, 3, 1, 1)
+            self.conv2 = conv_op(2 * in_channels, out_channels * n, 3, 1, 1)
         elif self.dims == 2:
             self.conv2 = conv_op(2 * in_channels, out_channels * n, 3, 1, 1)
         self.pixelshuffle = match_pixel_shuffle(dims=self.dims, scale=scales, out_channels=out_channels)
@@ -77,7 +77,7 @@ def match_pixel_shuffle(dims, scale, out_channels):
         return PixelShuffle3d(upscale_factor=scale, out_channels=out_channels)
 
 
-class SRUnetDecoder(nn.Module):
+class neUnetDecoder(nn.Module):
     def __init__(self,
                  encoder: Union[PlainConvEncoder, ResidualEncoder],
                  num_classes: int,
@@ -192,7 +192,7 @@ class SRUnetDecoder(nn.Module):
         return output
 
 
-class SRUNet(PlainConvUNet):
+class neUNet(PlainConvUNet):
     def __init__(self,
                  input_channels: int,
                  n_stages: int,
@@ -239,5 +239,49 @@ class SRUNet(PlainConvUNet):
                                          dropout_op,
                                          dropout_op_kwargs, nonlin, nonlin_kwargs, return_skips=True,
                                          nonlin_first=nonlin_first)
-        self.decoder = SRUnetDecoder(self.encoder, num_classes, n_conv_per_stage_decoder,
+        self.decoder = neUnetDecoder(self.encoder, num_classes, n_conv_per_stage_decoder,
+                                     deep_supervision, nonlin_first=nonlin_first)
+
+class PlainneUNet(PlainConvUNet):
+    def __init__(self,
+                 input_channels: int,
+                 n_stages: int,
+                 features_per_stage: Union[int, List[int], Tuple[int, ...]],
+                 conv_op: Type[_ConvNd],
+                 kernel_sizes: Union[int, List[int], Tuple[int, ...]],
+                 strides: Union[int, List[int], Tuple[int, ...]],
+                 n_conv_per_stage: Union[int, List[int], Tuple[int, ...]],
+                 num_classes: int,
+                 n_conv_per_stage_decoder: Union[int, Tuple[int, ...], List[int]],
+                 conv_bias: bool = False,
+                 norm_op: Union[None, Type[nn.Module]] = None,
+                 norm_op_kwargs: dict = None,
+                 dropout_op: Union[None, Type[_DropoutNd]] = None,
+                 dropout_op_kwargs: dict = None,
+                 nonlin: Union[None, Type[torch.nn.Module]] = None,
+                 nonlin_kwargs: dict = None,
+                 deep_supervision: bool = False,
+                 nonlin_first: bool = False
+                 ):
+        super().__init__(
+            input_channels=input_channels,
+            n_stages=n_stages,
+            features_per_stage=features_per_stage,
+            conv_op=conv_op,
+            kernel_sizes=kernel_sizes,
+            strides=strides,
+            n_conv_per_stage=n_conv_per_stage,
+            num_classes=num_classes,
+            n_conv_per_stage_decoder=n_conv_per_stage_decoder,
+            conv_bias=conv_bias,
+            norm_op=norm_op,
+            norm_op_kwargs=norm_op_kwargs,
+            dropout_op=dropout_op,
+            dropout_op_kwargs=dropout_op_kwargs,
+            nonlin=nonlin,
+            nonlin_kwargs=nonlin_kwargs,
+            deep_supervision=deep_supervision,
+            nonlin_first=nonlin_first
+        )
+        self.decoder = neUnetDecoder(self.encoder, num_classes, n_conv_per_stage_decoder,
                                      deep_supervision, nonlin_first=nonlin_first)

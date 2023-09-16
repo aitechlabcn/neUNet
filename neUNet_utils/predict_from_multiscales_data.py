@@ -31,10 +31,10 @@ from nnunetv2.utilities.json_export import recursive_fix_for_json_export
 from nnunetv2.utilities.label_handling.label_handling import determine_num_input_channels
 from nnunetv2.utilities.plans_handling.plans_handler import PlansManager, ConfigurationManager
 from nnunetv2.utilities.utils import create_lists_from_splitted_dataset_folder
-from SRUNet.wavalet_downsampling import WaveletDownsampleArray
+from neUNet_utils.wavelet_downsampling import WaveletDownsampleArray
 
 
-class nnUNetPredictor(object):
+class nnUNetWaveletPredictor(object):
     def __init__(self,
                  tile_step_size: float = 0.5,
                  use_gaussian: bool = True,
@@ -69,7 +69,7 @@ class nnUNetPredictor(object):
         This is used when making predictions with a trained model
         """
         if use_folds is None:
-            use_folds = nnUNetPredictor.auto_detect_available_folds(model_training_output_dir, checkpoint_name)
+            use_folds = nnUNetWaveletPredictor.auto_detect_available_folds(model_training_output_dir, checkpoint_name)
 
         dataset_json = load_json(join(model_training_output_dir, 'dataset.json'))
         plans = load_json(join(model_training_output_dir, 'plans.json'))
@@ -106,6 +106,10 @@ class nnUNetPredictor(object):
         self.trainer_name = trainer_name
         self.allowed_mirroring_axes = inference_allowed_mirroring_axes
         self.label_manager = plans_manager.get_label_manager(dataset_json)
+        wavelet_scales = [[1.0, 1.0, 1.0]]
+        wavelet_scales.extend(list(list(i) for i in 1 / np.cumprod(np.vstack(
+            self.configuration_manager.pool_op_kernel_sizes[:-1]), axis=0))[:-1])
+        self.ds_scales = wavelet_scales
         if ('nnUNet_compile' in os.environ.keys()) and (os.environ['nnUNet_compile'].lower() in ('true', '1', 't')) \
                 and not isinstance(self.network, OptimizedModule):
             print('compiling network')
