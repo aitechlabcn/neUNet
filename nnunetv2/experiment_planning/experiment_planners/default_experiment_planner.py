@@ -6,6 +6,7 @@ from typing import List, Union, Tuple, Type
 import numpy as np
 from batchgenerators.utilities.file_and_folder_operations import load_json, join, save_json, isfile, maybe_mkdir_p
 from dynamic_network_architectures.architectures.unet import PlainConvUNet, ResidualEncoderUNet
+from neUNet_utils.model import neUNet
 from dynamic_network_architectures.building_blocks.helper import convert_dim_to_conv_op, get_matching_instancenorm
 
 from nnunetv2.configuration import ANISO_THRESHOLD
@@ -45,7 +46,7 @@ class ExperimentPlanner(object):
         self.anisotropy_threshold = ANISO_THRESHOLD
 
         self.UNet_base_num_features = 32
-        self.UNet_class = PlainConvUNet
+        self.UNet_class = neUNet
         # the following two numbers are really arbitrary and were set to reproduce nnU-Net v1's configurations as
         # much as possible
         self.UNet_reference_val_3d = 560000000  # 455600128  550000000
