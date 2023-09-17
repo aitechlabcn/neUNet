@@ -110,7 +110,7 @@ You can click the  [link ](https://drive.google.com/drive/folders/1NGZQAOoA9sy6X
 You can perform inference using the following command:
 
 ```
-nnUNetv2_predict -i INPUT_FOLDER -o OUTPUT_FOLDER -d DATASET_NAME_OR_ID -c 3d_fullres -f FLOD --wavelets [--save_probabilities]
+nnUNetv2_predict -i INPUT_FOLDER -o OUTPUT_FOLDER -d DATASET_NAME_OR_ID -c 3d_fullres -f FOLD --wavelets [--save_probabilities]
 ```
 
 Where `INPUT_FOLDER`  and `OUTPUT_FOLDER` represent the input and output folder paths, respectively.`FOLD` can be an integer between 0 and 4 to specify a particular fold or `all ` to use all 5 folds for the operation.
