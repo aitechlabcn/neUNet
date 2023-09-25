@@ -127,6 +127,18 @@ Analyze --image_path IMAGE_FOLDER --predict_path PREDICT_FOLDER --label_path LAB
 ```
 
 Where  `CLASSES`  represents the number of classes in the dataset, and   `NAME ` represents the dataset's name.
+## Citation
+
+If you use neU-Net for your research, please cite our papers:
+
+'''
+@article{yang2023more,
+  title={More complex encoder is not all you need},
+  author={Yang, Weibin and Xu, Longwei and Wang, Pengwei and Geng, Dehua and Li, Yusong and Xu, Mingyuan and Dong, Zhiqi},
+  journal={arXiv preprint arXiv:2309.11139},
+  year={2023}
+}
+'''
 
 ## References
 
