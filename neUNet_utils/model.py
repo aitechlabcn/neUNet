@@ -72,7 +72,7 @@ class ConvWithPixelShuffle(nn.Module):
 
 def match_pixel_shuffle(dims, scale, out_channels):
     if dims == 2:
-        return nn.PixelShuffle(upscale_factor=scale)
+        return nn.PixelShuffle(upscale_factor=scale[0])
     if dims == 3:
         return PixelShuffle3d(upscale_factor=scale, out_channels=out_channels)
 
@@ -203,7 +203,7 @@ class neUNet(PlainConvUNet):
                  n_conv_per_stage: Union[int, List[int], Tuple[int, ...]],
                  num_classes: int,
                  n_conv_per_stage_decoder: Union[int, Tuple[int, ...], List[int]],
-                 wavalet_scales: Union[int, List[int], Tuple[int, ...]],
+                 wavelet_scales: Union[int, List[int], Tuple[int, ...]],
                  conv_bias: bool = False,
                  norm_op: Union[None, Type[nn.Module]] = None,
                  norm_op_kwargs: dict = None,
@@ -235,7 +235,7 @@ class neUNet(PlainConvUNet):
             nonlin_first=nonlin_first
         )
         self.encoder = MultiscaleEncoder(input_channels, n_stages, features_per_stage, conv_op, kernel_sizes, strides,
-                                         n_conv_per_stage, wavalet_scales, conv_bias, norm_op, norm_op_kwargs,
+                                         n_conv_per_stage, wavelet_scales, conv_bias, norm_op, norm_op_kwargs,
                                          dropout_op,
                                          dropout_op_kwargs, nonlin, nonlin_kwargs, return_skips=True,
                                          nonlin_first=nonlin_first)

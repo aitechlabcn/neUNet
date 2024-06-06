@@ -22,9 +22,9 @@ class WaveletDownsampleArray(AbstractTransform):
                 tmp_times_before = 1 / self.ds_scales[index - 1]
             need_downsample = tmp_times_now != tmp_times_before
             dimension = np.sum(need_downsample)
-            if dimension == 2:
-                assert not need_downsample[0], "check out downsample scales, It shouldn't be {0}!!!".format(
-                    need_downsample)
+            #if dimension == 2:
+                #assert not need_downsample[0], "check out downsample scales, It shouldn't be {0}!!!".format(
+                #    need_downsample)
             self.dwt_dimensions.append(dimension)
 
         self.approximate = ['a' * d for d in self.dwt_dimensions]
