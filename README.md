@@ -70,7 +70,7 @@ The download links for the datasets used in the experiments are as follows:
 - **ACDC**    [Link for ACDC](https://www.creatis.insa-lyon.fr/Challenge/acdc/).
 - **Synapse**    [Link for Synapse](https://www.synapse.org/#!Synapse:syn3193805/wiki/217789).
 - **BTCV**    [Link for BTCV](https://www.synapse.org/#!Synapse:syn3193805/wiki/217789).
-- **MSD Brain Tumours Segmentation Task** [Link for BraTs](https://drive.google.com/drive/folders/1HqEgzS8BV2c7xYNrZdEAnrHk7osJJ--2)).
+- **MSD Brain Tumours Segmentation Task** [Link for BraTs](https://drive.google.com/drive/folders/1HqEgzS8BV2c7xYNrZdEAnrHk7osJJ--2).
 
 ---
 
