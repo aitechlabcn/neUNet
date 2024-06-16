@@ -9,7 +9,7 @@ from dynamic_network_architectures.building_blocks.simple_conv_blocks import Sta
 from dynamic_network_architectures.building_blocks.helper import maybe_convert_scalar_to_list, get_matching_pool_op
 
 
-class MultiscaleEncoderforBrain(nn.Module):
+class MultiscaleEncoder(nn.Module):
     def __init__(self,
                  input_channels: int,
                  n_stages: int,
@@ -18,7 +18,7 @@ class MultiscaleEncoderforBrain(nn.Module):
                  kernel_sizes: Union[int, List[int], Tuple[int, ...]],
                  strides: Union[int, List[int], Tuple[int, ...]],
                  n_conv_per_stage: Union[int, List[int], Tuple[int, ...]],
-                 multi_inchannel: Union[int, List[int], Tuple[int, ...]],
+                 wavelet_scales: Union[int, List[int], Tuple[int, ...]],
                  conv_bias: bool = False,
                  norm_op: Union[None, Type[nn.Module]] = None,
                  norm_op_kwargs: dict = None,
@@ -29,6 +29,7 @@ class MultiscaleEncoderforBrain(nn.Module):
                  return_skips: bool = False,
                  nonlin_first: bool = False,
                  pool: str = 'conv'
+
                  ):
 
         super().__init__()
@@ -53,8 +54,14 @@ class MultiscaleEncoderforBrain(nn.Module):
         for s in range(n_stages):
             stage_modules = []
             if s in range(1, n_stages - 1):
+                # input_channels = 3  # 设置channel数为3
+                # TODO: 可能有Bug
+                if conv_op == nn.Conv3d:
+                    wavelet_input_dim = np.prod(wavelet_scales[s-1])
+                elif conv_op == nn.Conv2d:
+                    wavelet_input_dim = np.prod(wavelet_scales[s-1]) * 3
                 multiscale_input.append(ConvDropoutNormReLU(
-                    conv_op, 4 * multi_inchannel[s-1], input_channels, 3, 1, conv_bias, norm_op, norm_op_kwargs, dropout_op, dropout_op_kwargs,
+                    conv_op, 4 * wavelet_input_dim, input_channels, 3, 1, conv_bias, norm_op, norm_op_kwargs, dropout_op, dropout_op_kwargs,
                     nonlin, nonlin_kwargs, nonlin_first
                    ))
                 # multiscale_input.append(ConvDropoutNormReLU(
@@ -120,7 +127,7 @@ class MultiscaleEncoderforBrain(nn.Module):
         shapes = input_size
 
         for s in range(len(self.multiscale_input)):
-            output += self.multiscale_inputs[s].compute_conv_feature_map_size(shapes)
+            output += self.multiscale_input[s].compute_conv_feature_map_size(shapes)
             shapes = input_size = [i // j for i, j in zip(shapes, self.strides[s])]
 
         for s in range(len(self.stages)):
