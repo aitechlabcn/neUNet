@@ -179,7 +179,7 @@
                 true,
                 true
             ],
-            "UNet_class_name": "TumorneUNet",
+            "UNet_class_name": "neUNet",
             "UNet_base_num_features": 32,
             "n_conv_per_stage_encoder": [
                 2,
